@@ -3,5 +3,5 @@
 window.APP_CONFIG = {
   APP_NAME: 'DriveMate',
   SUPABASE_URL: 'https://oaucykkfbdzlzpaibmnd.supabase.com',
-  SUPABASE_ANON_KEY: 'sb_secret_5M2eIgXGREHQ5hdKN1XA6Q_y0vtTJ4l'
+  SUPABASE_ANON_KEY: 'sb_publishable_QY1mQYXHY33sha9kkBZbSA_Ae4MvELf'
 };
