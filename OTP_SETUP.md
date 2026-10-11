@@ -2,6 +2,13 @@
 
 This guide covers the phone OTP flow used by `app.js`. Do not put Supabase service-role keys, SMS-provider API secrets, or database passwords in this repository.
 
+## 0. Understand where the OTP appears
+
+- DriveMate sends the SMS to the mobile number entered on the sign-in screen. It does **not** send the code to the computer itself.
+- If you open DriveMate on a laptop, keep the phone with that SIM nearby and manually type the SMS code into the laptop's OTP field. Browser autofill is not guaranteed on another device.
+- If one device opens the app without asking for an OTP, it may already have a valid Supabase session saved in that browser. That does not prove fresh SMS delivery works.
+- To compare devices, test the same number and check whether the OTP request succeeds and the SMS arrives on the SIM phone. Do not repeatedly request codes; provider rate limits may apply.
+
 ## 1. Confirm the Supabase Phone provider
 
 1. Open the Supabase project used by DriveMate.
