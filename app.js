@@ -106,7 +106,7 @@
       if (!session) { needLogin(); return; }
       renderDrive();
     } else if (hash === '#/admin') {
-      if (!session) { needLogin(); return; }
+      if (!session) { renderAdminPinLogin(); return; }
       renderAdmin();
     } else if (hash === '#/login') {
       if (session) { go(afterLogin || '#/book'); afterLogin = null; return; }
@@ -993,6 +993,74 @@
       if (st.driver_status !== 'approved' && st.driver_status !== 'pending') return;
       fetchAll(true).then(function () { if (alive && !busy) draw(); });
     }, 5000);
+  }
+
+  /* ---------- admin PIN login ---------- */
+  function renderAdminPinLogin() {
+    var alive = true;
+    cleanup = function () { alive = false; };
+    root.innerHTML = shell(
+      '<section class="card stack-lg" style="max-width:560px;margin:0 auto">' +
+        '<div class="stack"><span class="eyebrow">Admin access</span><h2>Enter admin PIN</h2>' +
+        '<p class="muted">Use the private admin PIN to continue. No SMS OTP is required.</p></div>' +
+        '<form id="adminPinForm" class="stack">' +
+          '<div><label class="label" for="adminPin">Admin PIN</label>' +
+          '<input id="adminPin" class="input" type="password" inputmode="numeric" autocomplete="current-password" maxlength="64" required></div>' +
+          '<p id="adminPinErr" class="error" role="alert" aria-live="polite"></p>' +
+          '<button id="adminPinSubmit" class="btn" type="submit">Unlock admin panel</button>' +
+          '<a class="btn-quiet as-link" href="#/">Back home</a>' +
+        '</form>' +
+      '</section>'
+    );
+    var form = $('#adminPinForm');
+    var pinInput = $('#adminPin');
+    if (pinInput) pinInput.focus();
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!alive) return;
+      var pin = pinInput.value;
+      if (!pin) { setMsg('#adminPinErr', 'Enter your admin PIN.'); return; }
+      var btn = $('#adminPinSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Verifying…';
+      setMsg('#adminPinErr', '');
+      try {
+        var response = await fetch(CFG.SUPABASE_URL + '/functions/v1/admin-pin-login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': CFG.SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + CFG.SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({ pin: pin })
+        });
+        var result = await response.json().catch(function () { return {}; });
+        if (!alive) return;
+        if (!response.ok || !result.session || !result.session.access_token || !result.session.refresh_token) {
+          btn.disabled = false;
+          btn.textContent = 'Unlock admin panel';
+          setMsg('#adminPinErr', result.error || 'PIN verification failed. Check the PIN or try again later.');
+          return;
+        }
+        var sessionResult = await supa.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token
+        });
+        if (!alive) return;
+        if (sessionResult.error) {
+          btn.disabled = false;
+          btn.textContent = 'Unlock admin panel';
+          setMsg('#adminPinErr', 'The admin session could not be started. Please try again.');
+          return;
+        }
+        go('#/admin');
+      } catch (err) {
+        if (!alive) return;
+        btn.disabled = false;
+        btn.textContent = 'Unlock admin panel';
+        setMsg('#adminPinErr', 'Could not reach the secure PIN service. Confirm the Edge Function is deployed and try again.');
+      }
+    });
   }
 
   /* ---------- admin ---------- */
