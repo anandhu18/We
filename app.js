@@ -152,7 +152,7 @@
             '<span class="eyebrow">A smarter way to get home</span>' +
             '<h1>Your car. Your keys. A driver you can book.</h1>' +
             '<p class="muted">Get a driver to drive your own car when you would rather not take the wheel. Simple booking, clear fare estimates, and trip updates in one place.</p>' +
-            '<div class="stack"><a class="btn" href="' + (signedIn ? '#/book' : '#/login') + '">Book a driver <span aria-hidden="true">↗</span></a>' + extra + '</div>' +
+            '<div class="stack"><a class="btn" href="' + '#/book' + '">Book a driver <span aria-hidden="true">↗</span></a>' + extra + '</div>' +
             '<p class="hint">Designed for mobile. Works in your browser—no app install required.</p>' +
           '</div>' +
           '<aside class="hero-panel">' +
@@ -207,6 +207,7 @@
       root.innerHTML = shell(
         '<section class="card stack-lg" style="max-width:560px;margin:0 auto">' +
           '<div class="stack"><span class="eyebrow">Secure sign-in</span><h2>Sign in with your mobile</h2><p class="muted">We will request a one-time code for your Indian mobile number. Keep the SIM phone nearby to read the SMS.</p></div>' +
+          (afterLogin === '#/book' || (afterLogin && afterLogin.indexOf('#/trip/') === 0) ? '<div class="stack"><button id="guest" type="button" class="btn">Continue as customer — no OTP</button><p class="hint">Temporary guest access. No phone verification is required.</p></div><div class="divider"></div>' : '') +
           '<form id="phoneForm" class="stack">' +
             '<div><label class="label" for="phone">Mobile number</label>' +
               '<div class="phone-row"><span class="phone-prefix">+91</span>' +
@@ -217,6 +218,32 @@
           '<details class="help-panel"><summary>Not receiving the code?</summary><ul><li>The SMS goes to the phone number entered above, not automatically to this computer.</li><li>Check that the number and +91 country code are correct and that the SIM can receive SMS.</li><li>Wait a minute, then use the resend option if it appears.</li><li>If no SMS arrives, the site owner must check the Supabase Phone provider and SMS delivery logs.</li></ul></details>' +
         '</section>'
       );
+      var guest = $('#guest');
+      if (guest) {
+        guest.addEventListener('click', async function () {
+          guest.disabled = true;
+          guest.textContent = 'Starting guest session…';
+          setMsg('#err', '');
+          try {
+            var res = await supa.auth.signInAnonymously();
+            if (!alive) return;
+            if (res.error) {
+              guest.disabled = false;
+              guest.textContent = 'Continue as customer — no OTP';
+              setMsg('#err', 'Guest sign-in is not enabled yet. In Supabase, open Authentication → Sign In / Providers and enable Anonymous Sign-Ins. Details: ' + (res.error.message || 'Request failed.'));
+              return;
+            }
+            var next = afterLogin || '#/book';
+            afterLogin = null;
+            go(next);
+          } catch (err) {
+            if (!alive) return;
+            guest.disabled = false;
+            guest.textContent = 'Continue as customer — no OTP';
+            setMsg('#err', 'Could not start a guest session. Check the Supabase connection and enable Anonymous Sign-Ins. ' + (err && err.message ? err.message : ''));
+          }
+        });
+      }
       var input = $('#phone');
       input.addEventListener('input', function () {
         digits = input.value.replace(/\D/g, '').slice(0, 10);
