@@ -247,44 +247,84 @@
       }, 1000);
     }
 
+    function authErrorMessage(err, mode) {
+      var raw = String((err && (err.message || err.msg || err.error_description)) || '');
+      var low = raw.toLowerCase();
+      if (/\bdlt\b|entity.?id|template.?id|sender.?id|senderid|telecom|sms provider|message template/.test(low)) {
+        return 'SMS delivery is blocked by the SMS provider’s DLT sender/template registration. Register and approve the sender ID and OTP template with your SMS provider, then check the Phone provider settings in Supabase. This cannot be fixed from website code alone.';
+      }
+      if (/phone.*not.*enabled|phone.*provider.*disabled|unsupported phone/.test(low)) {
+        return 'Phone sign-in is not enabled for this Supabase project. Enable Phone authentication in Supabase → Authentication → Sign In / Providers, then configure an SMS provider.';
+      }
+      if (/rate.?limit|too many requests|request rate/.test(low)) {
+        return 'Too many OTP requests were made. Wait a few minutes before trying again.';
+      }
+      if (/invalid.*phone|phone.*invalid|unable to validate phone/.test(low)) {
+        return 'The phone number was rejected. Enter your 10-digit Indian mobile number and confirm the +91 country code.';
+      }
+      if (/not registered|user not found|no user/.test(low)) {
+        return 'The authentication service says this phone number is not registered. Check the Supabase Phone provider and whether new-user sign-up is allowed. Phone OTP sign-in normally creates a user unless sign-up has been disabled.';
+      }
+      if (/network|fetch|timeout|load failed/.test(low)) {
+        return 'Could not reach the authentication service. Check your internet connection and try again.';
+      }
+      return (mode === 'verify'
+        ? 'OTP verification failed. Check the latest 6-digit code or request a new one.'
+        : 'We could not send the OTP. Check the number and the Supabase SMS provider settings.')
+        + (raw ? ' Technical detail: ' + raw : '');
+    }
+
     async function sendOtp(btnSel) {
       if (!/^[6-9]\d{9}$/.test(digits)) {
-        setMsg('#err', 'Enter a valid 10-digit mobile number.');
+        setMsg('#err', 'Enter a valid 10-digit Indian mobile number.');
         return;
       }
       setMsg('#err', '');
       var btn = $(btnSel);
       if (btn) btn.disabled = true;
-      var res = await supa.auth.signInWithOtp({ phone: phone() });
-      if (!alive) return;
-      if (res.error) {
+      try {
+        var res = await supa.auth.signInWithOtp({ phone: phone(), options: { shouldCreateUser: true } });
+        if (!alive) return;
+        if (res.error) {
+          if (btn) btn.disabled = false;
+          setMsg('#err', authErrorMessage(res.error, 'send'));
+          return;
+        }
+        startCooldown();
+        showOtp();
+      } catch (err) {
+        if (!alive) return;
         if (btn) btn.disabled = false;
-        setMsg('#err', 'We could not send the code. Check the number and try again. (Details: ' + (res.error.message || res.error.code || 'unknown') + ')');
-        return;
+        setMsg('#err', authErrorMessage(err, 'send'));
       }
-      startCooldown();
-      showOtp();
     }
 
     async function verifyOtp() {
-      var token = $('#otp').value;
+      var otpInput = $('#otp');
+      var token = otpInput ? otpInput.value : '';
       if (!/^\d{6}$/.test(token)) {
         setMsg('#err', 'Enter the 6-digit code.');
         return;
       }
       setMsg('#err', '');
       var btn = $('#verify');
-      btn.disabled = true;
-      var res = await supa.auth.verifyOtp({ phone: phone(), token: token, type: 'sms' });
-      if (!alive) return;
-      if (res.error) {
-        btn.disabled = false;
-        setMsg('#err', 'That code did not work. Check it or request a new one. (Details: ' + (res.error.message || res.error.code || 'unknown') + ')');
-        return;
+      if (btn) btn.disabled = true;
+      try {
+        var res = await supa.auth.verifyOtp({ phone: phone(), token: token, type: 'sms' });
+        if (!alive) return;
+        if (res.error) {
+          if (btn) btn.disabled = false;
+          setMsg('#err', authErrorMessage(res.error, 'verify'));
+          return;
+        }
+        var next = afterLogin || '#/book';
+        afterLogin = null;
+        go(next);
+      } catch (err) {
+        if (!alive) return;
+        if (btn) btn.disabled = false;
+        setMsg('#err', authErrorMessage(err, 'verify'));
       }
-      var next = afterLogin || '#/book';
-      afterLogin = null;
-      go(next);
     }
 
     showPhone();
