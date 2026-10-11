@@ -146,15 +146,40 @@
     }
 
     root.innerHTML = shell(
-      '<div class="stack-lg" style="padding-top:24px">' +
-        '<div class="stack"><h1>Your car, your keys, our driver.</h1>' +
-        '<p class="muted">Had a drink or too tired to drive? A trained driver comes to you and drives you and your car home.</p></div>' +
-        '<div class="stack"><a class="btn" href="' + (signedIn ? '#/book' : '#/login') + '">Book a driver</a>' + extra + '</div>' +
-        '<ul class="stack muted" style="padding-left:20px;margin:0">' +
-          '<li>You see the fare before you confirm.</li>' +
-          '<li>Every driver is approved by us before taking trips.</li>' +
-          '<li>Pay the driver in cash.</li>' +
-        '</ul>' +
+      '<div class="stack-lg">' +
+        '<section class="hero-grid">' +
+          '<div class="hero-copy">' +
+            '<span class="eyebrow">A smarter way to get home</span>' +
+            '<h1>Your car. Your keys. A driver you can book.</h1>' +
+            '<p class="muted">Get a driver to drive your own car when you would rather not take the wheel. Simple booking, clear fare estimates, and trip updates in one place.</p>' +
+            '<div class="stack"><a class="btn" href="' + (signedIn ? '#/book' : '#/login') + '">Book a driver <span aria-hidden="true">↗</span></a>' + extra + '</div>' +
+            '<p class="hint">Designed for mobile. Works in your browser—no app install required.</p>' +
+          '</div>' +
+          '<aside class="hero-panel">' +
+            '<div><span class="eyebrow">DriveMate essentials</span><h2 style="margin-top:12px">A calmer ride starts here.</h2></div>' +
+            '<div class="stack">' +
+              '<div class="hero-stat"><span class="hero-icon" aria-hidden="true">₹</span><div><b>Fare upfront</b><p class="muted">Review the estimate before confirming your request.</p></div></div>' +
+              '<div class="hero-stat"><span class="hero-icon" aria-hidden="true">✓</span><div><b>Driver approval</b><p class="muted">Only drivers approved by the DriveMate team can accept trips.</p></div></div>' +
+              '<div class="hero-stat"><span class="hero-icon" aria-hidden="true">↗</span><div><b>Trip updates</b><p class="muted">Follow the trip status from request to completion.</p></div></div>' +
+            '</div>' +
+            '<p class="hint">Always confirm driver details before handing over your vehicle.</p>' +
+          '</aside>' +
+        '</section>' +
+        '<section class="section-block"><div class="section-heading"><div><span class="eyebrow">How it works</span><h2 style="margin-top:10px">Three simple steps</h2></div><p class="muted">Keep the process clear from pickup to drop-off.</p></div>' +
+          '<div class="steps">' +
+            '<article class="step-card"><h3>Choose your route</h3><p class="muted">Enter your pickup and destination to review your trip estimate.</p></article>' +
+            '<article class="step-card"><h3>Confirm your request</h3><p class="muted">Submit the booking and watch for a driver to accept.</p></article>' +
+            '<article class="step-card"><h3>Track the trip</h3><p class="muted">See trip status updates and contact details when available.</p></article>' +
+          '</div>' +
+        '</section>' +
+        '<section class="section-block"><div class="section-heading"><div><span class="eyebrow">Built around confidence</span><h2 style="margin-top:10px">The details that matter</h2></div></div>' +
+          '<div class="feature-grid">' +
+            '<article class="feature-card"><span class="hero-icon" aria-hidden="true">◎</span><h3 style="margin-top:14px">Location search</h3><p>Search for pickup and drop-off places or use your device location when available.</p></article>' +
+            '<article class="feature-card"><span class="hero-icon" aria-hidden="true">↗</span><h3 style="margin-top:14px">Driver workflow</h3><p>Drivers can apply, go online after approval, and update trip progress.</p></article>' +
+            '<article class="feature-card"><span class="hero-icon" aria-hidden="true">▦</span><h3 style="margin-top:14px">Operations dashboard</h3><p>Authorized admins can review driver applications, trips, and fare settings.</p></article>' +
+          '</div>' +
+        '</section>' +
+        '<footer class="site-footer"><span>© ' + new Date().getFullYear() + ' DriveMate</span><span>Drive safely. Arrive comfortably.</span></footer>' +
       '</div>',
       signedIn ? '<button id="signout" type="button" class="link">Sign out</button>' : '<a class="link" href="#/login">Sign in</a>'
     );
@@ -180,14 +205,17 @@
 
     function showPhone() {
       root.innerHTML = shell(
-        '<form id="phoneForm" class="stack-lg">' +
-          '<div class="stack"><h2>Enter your mobile number</h2><p class="muted">We will text you a 6-digit code.</p></div>' +
-          '<div><label class="label" for="phone">Mobile number</label>' +
-            '<div class="phone-row"><span class="phone-prefix">+91</span>' +
-            '<input id="phone" class="input" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="98765 43210" value="' + esc(digits) + '"></div></div>' +
-          '<p id="err" class="error"></p>' +
-          '<button id="send" class="btn" type="submit">Send code</button>' +
-        '</form>'
+        '<section class="card stack-lg" style="max-width:560px;margin:0 auto">' +
+          '<div class="stack"><span class="eyebrow">Secure sign-in</span><h2>Sign in with your mobile</h2><p class="muted">We will request a one-time code for your Indian mobile number. Keep the SIM phone nearby to read the SMS.</p></div>' +
+          '<form id="phoneForm" class="stack">' +
+            '<div><label class="label" for="phone">Mobile number</label>' +
+              '<div class="phone-row"><span class="phone-prefix">+91</span>' +
+              '<input id="phone" class="input" type="tel" inputmode="numeric" autocomplete="tel-national" autocorrect="off" spellcheck="false" maxlength="10" placeholder="98765 43210" value="' + esc(digits) + '" required></div></div>' +
+            '<p id="err" class="error" role="alert" aria-live="polite"></p>' +
+            '<button id="send" class="btn" type="submit">Send verification code</button>' +
+          '</form>' +
+          '<details class="help-panel"><summary>Not receiving the code?</summary><ul><li>The SMS goes to the phone number entered above, not automatically to this computer.</li><li>Check that the number and +91 country code are correct and that the SIM can receive SMS.</li><li>Wait a minute, then use the resend option if it appears.</li><li>If no SMS arrives, the site owner must check the Supabase Phone provider and SMS delivery logs.</li></ul></details>' +
+        '</section>'
       );
       var input = $('#phone');
       input.addEventListener('input', function () {
@@ -202,19 +230,17 @@
 
     function showOtp() {
       root.innerHTML = shell(
-        '<form id="otpForm" class="stack-lg">' +
-          '<div class="stack"><h2>Enter the code</h2><p class="muted">Sent to +91 ' + esc(digits) + '.</p></div>' +
-          '<div><label class="label" for="otp">6-digit code</label>' +
-            '<input id="otp" class="input otp-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="\u00B7\u00B7\u00B7\u00B7\u00B7\u00B7"></div>' +
-          '<p id="err" class="error"></p>' +
-          '<div class="stack">' +
+        '<section class="card stack-lg" style="max-width:560px;margin:0 auto">' +
+          '<div class="stack"><span class="eyebrow">One more step</span><h2>Enter your verification code</h2><p class="muted">The SMS will arrive on the phone using <b>+91 ' + esc(digits) + '</b>. On another computer, enter the code from that phone manually.</p></div>' +
+          '<form id="otpForm" class="stack">' +
+            '<div><label class="label" for="otp">6-digit code</label>' +
+              '<input id="otp" class="input otp-input" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" required></div>' +
+            '<p id="err" class="error" role="alert" aria-live="polite"></p>' +
             '<button id="verify" class="btn" type="submit">Verify and continue</button>' +
-            '<div style="display:flex;justify-content:space-between">' +
-              '<button id="change" type="button" class="link">Change number</button>' +
-              '<button id="resend" type="button" class="link"></button>' +
-            '</div>' +
-          '</div>' +
-        '</form>'
+            '<div class="row-between"><button id="change" type="button" class="link">Change number</button><button id="resend" type="button" class="link"></button></div>' +
+          '</form>' +
+          '<details class="help-panel"><summary>Still no SMS?</summary><ul><li>Check the SMS inbox on the SIM phone, not the computer where DriveMate is open.</li><li>Confirm that the same number entered on this screen is the one receiving SMS.</li><li>Wait for the resend countdown to finish before requesting another code.</li><li>If the provider returns a DLT, sender ID, or template error, the website owner must fix the SMS provider setup in Supabase.</li></ul></details>' +
+        '</section>'
       );
       var otp = $('#otp');
       otp.addEventListener('input', function () {
@@ -281,20 +307,23 @@
       }
       setMsg('#err', '');
       var btn = $(btnSel);
-      if (btn) btn.disabled = true;
+      var originalLabel = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending code…'; }
+      setMsg('#err', 'Contacting the authentication service…');
       try {
         var res = await supa.auth.signInWithOtp({ phone: phone(), options: { shouldCreateUser: true } });
         if (!alive) return;
         if (res.error) {
-          if (btn) btn.disabled = false;
+          if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
           setMsg('#err', authErrorMessage(res.error, 'send'));
           return;
         }
         startCooldown();
         showOtp();
+        setMsg('#err', '');
       } catch (err) {
         if (!alive) return;
-        if (btn) btn.disabled = false;
+        if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
         setMsg('#err', authErrorMessage(err, 'send'));
       }
     }
@@ -308,12 +337,12 @@
       }
       setMsg('#err', '');
       var btn = $('#verify');
-      if (btn) btn.disabled = true;
+      if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
       try {
         var res = await supa.auth.verifyOtp({ phone: phone(), token: token, type: 'sms' });
         if (!alive) return;
         if (res.error) {
-          if (btn) btn.disabled = false;
+          if (btn) { btn.disabled = false; btn.textContent = 'Verify and continue'; }
           setMsg('#err', authErrorMessage(res.error, 'verify'));
           return;
         }
@@ -322,7 +351,7 @@
         go(next);
       } catch (err) {
         if (!alive) return;
-        if (btn) btn.disabled = false;
+        if (btn) { btn.disabled = false; btn.textContent = 'Verify and continue'; }
         setMsg('#err', authErrorMessage(err, 'verify'));
       }
     }
